@@ -4,6 +4,9 @@ const MAX_RETRIES = 3;
 const RETRY_INTERVAL = 5 * 1000;
 
 class DatabaseConnection {
+  public retryCount: number;
+  public isConnected: boolean;
+
   constructor() {
     this.retryCount = 0;
     this.isConnected = false;
@@ -34,15 +37,18 @@ class DatabaseConnection {
         throw new Error("MongoDB URI must be specified in the environment");
       }
 
-      const connectionOptions = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
+    
+      const connectionOptions: mongoose.ConnectOptions = {
+        // useNewUrlParser: true,
+        // useUnifiedTopology: true,
         maxPoolSize: 10,
+        // poolSize: 10, // Corrected property name
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 10000,
         socketTimeoutMS: 45000,
         family: 4, // use IPv4
       };
+
       if (process.env.NODE_ENV === "production") {
         mongoose.set("debug", true);
       }

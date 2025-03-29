@@ -1,6 +1,25 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
-const coursePurchaseSchema = new mongoose.Schema(
+export interface ICoursePurchase extends Document {
+  course: Types.ObjectId;
+  user: Types.ObjectId;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string;
+  paymentId: string;
+  paymentDate: Date;
+  refundId?: string;
+  refundAmount?: number;
+  refundReason?: string;
+  metadata?: Map<string, string>;
+  isRefundable: boolean;
+  processRefund(reason: string, amount?: number): Promise<ICoursePurchase>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const coursePurchaseSchema = new mongoose.Schema<ICoursePurchase>(
   {
     course: {
       type: mongoose.Schema.Types.ObjectId,
@@ -66,14 +85,14 @@ coursePurchaseSchema.index({ user: 1, course: 1 });
 coursePurchaseSchema.index({ status: 1 });
 coursePurchaseSchema.index({ createdAt: -1 });
 
-coursePurchaseSchema.virtual("isRefundable").get(function () {
+coursePurchaseSchema.virtual("isRefundable").get(function (): boolean {
   if (this.status !== "completed") return false;
-  const thirtyDayPeriod = new Date(Date.now) - 30 * 24 * 60 * 60 * 1000;
+  const thirtyDayPeriod = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   return this.createdAt > thirtyDayPeriod;
 });
 
 // method to process refund
-coursePurchaseSchema.methods.processRefund = async function (reason, amount) {
+coursePurchaseSchema.methods.processRefund = async function (reason: string, amount: number) {
   this.reason = reason;
   this.status = "refunded";
   this.refundAmount = amount || this.amount;
@@ -81,7 +100,7 @@ coursePurchaseSchema.methods.processRefund = async function (reason, amount) {
   return this.save();
 };
 
-export const coursePurchase = mongoose.model(
+export const coursePurchase = mongoose.model<ICoursePurchase>(
   "CoursePurchase",
   coursePurchaseSchema
 );

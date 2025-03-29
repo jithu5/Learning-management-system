@@ -1,6 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
-const lectureProgressSchema = new mongoose.Schema({
+export interface ILectureProgress extends Document {
+  lecture: Types.ObjectId,
+  isCompleted: boolean,
+  watchTime: number,
+  lastWatched: Date,
+}
+
+const lectureProgressSchema = new mongoose.Schema<ILectureProgress>({
   lecture: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Lecture",
@@ -20,7 +27,17 @@ const lectureProgressSchema = new mongoose.Schema({
   },
 });
 
-const courseProgressSchema = new mongoose.Schema(
+export interface ICourseProgress extends Document {
+  user: Types.ObjectId;
+  course: Types.ObjectId;
+  isCompleted: boolean;
+  completionPercentage: number;
+  lectureProgress: ILectureProgress[];
+  lastAccessed: Date;
+  updateLastAccessed(): Promise<ICourseProgress>;
+}
+
+const courseProgressSchema = new mongoose.Schema<ICourseProgress>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -56,7 +73,7 @@ const courseProgressSchema = new mongoose.Schema(
 );
 
 // calculate course completion
-courseProgressSchema.pre("save", function (next) {
+courseProgressSchema.pre<ICourseProgress>("save", function (next) {
   if (this.lectureProgress.length > 0) {
     const completedLectures = this.lectureProgress.filter(
       (lp) => lp.isCompleted
@@ -75,7 +92,7 @@ courseProgressSchema.methods.updateLastAccessed = function () {
   return this.save({ validateBeforeSave: true });
 };
 
-export const courseProgress = mongoose.model(
+export const courseProgress = mongoose.model<ICourseProgress>(
   "CourseProgress",
   courseProgressSchema
 );

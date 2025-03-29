@@ -1,9 +1,33 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
-const userSchema = new mongoose.Schema(
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  avatar: string;
+  bio: string;
+  location: string;
+  enrolledCourses: {
+    course: mongoose.Schema.Types.ObjectId;
+    enrolledAt: Date;
+  }[];
+  createdCourses: {
+    course: mongoose.Schema.Types.ObjectId;
+    createdAt: Date;
+  }[];
+  resetPasswordToken: string;
+  resetPasswordTokenExpiration: Date;
+  lastAcive: Date;
+  comparePassword(password: string): Promise<boolean>;
+  getResetPasswordToken(): string;
+  updateLastActive(): Date;
+  totalEnrolledCourses: number;
+}
+
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
@@ -96,13 +120,13 @@ userSchema.pre("save", async function (next) {
 });
 
 // compare password with hashed password in database
-userSchema.methods.comparePassword = async function (password) {
+userSchema.methods.comparePassword = async function (password:string): Promise<boolean> {
   const user = this;
   return await bcrypt.compare(password, user.password);
 };
 
 // generate token for password reset
-userSchema.methods.getResetPasswordToken = function () {
+userSchema.methods.getResetPasswordToken = function () :string {
   const resetToken = crypto.randomBytes(20).toString("hex");
   this.resetPasswordToken = crypto
     .createHash("sha256")
@@ -114,14 +138,14 @@ userSchema.methods.getResetPasswordToken = function () {
 };
 
 // update users last active
-userSchema.methods.updateLastActive = function () {
+userSchema.methods.updateLastActive = function (): Date {
   this.lastAcive = Date.now();
   return this.lastAcive({ validateBeforeSave: false });
 };
 
 // virtual field for total enrolled courses
-userSchema.virtual("totalEnrolledCourses").get(function () {
+userSchema.virtual("totalEnrolledCourses").get(function (): number {
   return this.enrolledCourses.length;
 });
 
-export const User = mongoose.model("User", userSchema);
+export const User = mongoose.model<IUser>("User", userSchema);

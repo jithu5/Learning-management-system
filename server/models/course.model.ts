@@ -1,6 +1,24 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
 
-const courseSchema = new mongoose.Schema(
+// Define an interface for the Course document
+export interface ICourse extends Document {
+  title: string;
+  subtitle?: string;
+  description: string;
+  category: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  price: number;
+  thumbnail: string;
+  enrolledStudents: Types.ObjectId[];
+  lectures: Types.ObjectId[];
+  instructor: Types.ObjectId;
+  isPublished: boolean;
+  totalDuration: number;
+  totalLectures: number;
+  averageRating?: number;
+}
+
+const courseSchema = new mongoose.Schema<ICourse>(
   {
     title: {
       type: String,
@@ -79,7 +97,7 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-courseSchema.pre("save", async function (next) {
+courseSchema.pre<ICourse>("save", async function (next) {
   if (this.lectures) {
     this.totalLectures = this.lectures.length;
   }
@@ -90,4 +108,4 @@ courseSchema.virtual("averageRating").get(function () {
   return 0; // TODO
 });
 
-export const Course = mongoose.model("Course", courseSchema);
+export const Course = mongoose.model<ICourse>("Course", courseSchema);

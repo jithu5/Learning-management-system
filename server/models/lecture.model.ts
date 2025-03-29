@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-const lectureSchema = new mongoose.Schema(
+export interface ILecture extends Document {
+  title: string;
+  description: string;
+  videoUrl: string;
+  duration: number;
+  publicId: string;
+  isPreview: boolean;
+  order: number;
+}
+
+const lectureSchema = new mongoose.Schema<ILecture>(
   {
     title: {
       type: String,
@@ -41,11 +51,12 @@ const lectureSchema = new mongoose.Schema(
   }
 );
 
-lectureSchema.pre("save", function (next) {
+lectureSchema.pre<ILecture>('save', function(next) {
   if (this.duration) {
     this.duration = Math.round(this.duration * 100) / 100;
     // optional thing
   }
+  next();
 });
 
-export const Lecture = mongoose.model("Lecture", lectureSchema);
+export const Lecture = mongoose.model<ILecture>("Lecture", lectureSchema);

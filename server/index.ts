@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Handler, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -37,35 +37,35 @@ app.use(
   })
 );
 
-app.use(helmet());
+app.use(helmet() as Handler);
 
 // Apply the rate limiting middleware to api requests.
 app.use("/api", limiter);
 
 // logging middleware
 if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
+  app.use(morgan("dev") as Handler);
 }
 
 // Middleware to parse JSON request bodies
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(cookieParser());
+app.use(cookieParser() as Handler);
 
 // Routes
-app.get("/", (req, res) => {
+app.get("/", (req:Request, res:Response) => {
   res.json({ message: "Hello, World!" });
 });
 
 // error handling
-app.use((err, req, res, next) => {
-  console.error(err);
-  console.log(err?.stack);
-  return res.status(err.status || 500).json({
+app.use((err: any, req: Request, res: Response, next: NextFunction): void => {
+  console.error("Error:", err.message);
+  console.error("Stack:", err?.stack);
+
+  res.status(err.status || 500).json({
     message: err.message || "Something went wrong",
     status: err.status || 500,
     success: err.success || false,
-    // error : err
   });
 });
 
