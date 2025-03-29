@@ -10,7 +10,7 @@ Cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadMedia = async (file) => {
+export const uploadMedia = async (file: string) => {
   if (!file) {
     throw new Error("No file provided");
   }
@@ -22,7 +22,7 @@ export const uploadMedia = async (file) => {
     });
     console.log("Media Uploaded successfully", response.secure_url);
     return response;
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error uploading file: " + error.message);
   } finally {
     try {
@@ -30,26 +30,26 @@ export const uploadMedia = async (file) => {
         fs.unlinkSync(file);
       }
       console.log("Temporary file deleted successfully");
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error deleting temporary file: " + error.message);
     }
   }
 };
 
-export const deleteMediaFromCloudinary = async (publicId) => {
+export const deleteMediaFromCloudinary = async (publicId:string) => {
   try {
     await Cloudinary.uploader.destroy(publicId);
     console.log("Media deleted from Cloudinary successfully");
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error deleting media from Cloudinary: " + error.message);
   }
 };
 
-export const deleteVedioFromCloudinary = async (publicId) => {
+export const deleteVedioFromCloudinary = async (publicId:string) => {
   try {
     await Cloudinary.uploader.destroy(publicId, { resource_type: "Vedio" });
     console.log("Video deleted from Cloudinary successfully");
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error deleting media from Cloudinary: " + error.message);
   }
 };

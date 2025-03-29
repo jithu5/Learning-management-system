@@ -1,14 +1,15 @@
-import { response } from "express";
+import { Response } from "express";
 import jwt from "jsonwebtoken";
+import { IUser } from "../models/user.model.js";
 
 const SECRET_KEY = "your-secret-key";
 
 // Function to generate a JWT token
-export function generateToken(res, user, message) {
+export function generateToken(res:Response, user:IUser, message:string) {
   const token = jwt.sign({ userId: user?._id }, SECRET_KEY, {
     expiresIn: "7d",
   });
-  return response
+  return res
     .status(200)
     .cookie("token", token, {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
